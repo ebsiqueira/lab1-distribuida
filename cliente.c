@@ -13,7 +13,7 @@ int main()
     int len;
     struct sockaddr_in address;
     int result;
-    char op[3], key[5], value[10], cmd[21];
+    char op[3], key[5], value[10], cmd[21], rtn[10];
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     address.sin_family = AF_INET;
@@ -44,7 +44,6 @@ int main()
             strcat(cmd, ",");
             strcat(cmd, value);
             strcat(cmd, ")");
-            //printf("%s", &cmd);
             write(sockfd, &cmd, sizeof(cmd));
         }
         else
@@ -58,8 +57,8 @@ int main()
                 strcat(cmd, key);
                 strcat(cmd, ")");
                 write(sockfd, &cmd, sizeof(cmd));
-                read(sockfd, &value, sizeof(value));
-                printf("%s", &value);
+                read(sockfd, &rtn, sizeof(rtn));
+                printf("%s\n", &rtn);
             }
             else
             {

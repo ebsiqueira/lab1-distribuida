@@ -11,9 +11,13 @@
 #define key_size 5
 #define value_size 10
 #define max_clients 2
+#define vault_capacity 10
+
+int global = 0;
 
 pthread_mutex_t store_lock;
-char store[key_size];
+char store_key[vault_capacity][key_size];
+char store_value[vault_capacity][value_size];
 
 void *user(void *arg);
 
@@ -68,31 +72,67 @@ void *user(void *arg)
     char value[value_size];
     while (1)
     {
+        fflush(stdout);
         read(client_sockfd, &cmd, sizeof(cmd));
         if (cmd[0] == 'p' && cmd[1] == 'u' && cmd[2] == 't')
         {
-            printf("%s", &cmd);
             char *token = strtok(cmd, ",");
-            for(int i = 4; i < sizeof(token); i++){
-                key[i-4] = token[i];
+            for (int i = 4; i < sizeof(token); i++)
+            {
+                key[i - 4] = token[i];
             }
             token = strtok(NULL, "");
-            for(int i = 0; i < sizeof(token)-1; i++){
+            for (int i = 0; i < sizeof(token); i++)
+            {
+                if (token[i] == ')')
+                {
+                    break;
+                }
                 value[i] = token[i];
             }
-            // pthread_mutex_lock(&store_lock);
-            // pthread_mutex_unlock(&store_lock);
-        }
-        if (cmd[0] == 'g' && cmd[1] == 'e' && cmd[2] == 't')
-        {
-            // pthread_mutex_lock(&store_lock);
-            // pthread_mutex_unlock(&store_lock);
-            write(client_sockfd, &rtn, sizeof(rtn));
+
+            pthread_mutex_lock(&store_lock);
+            for (int l = 0; l < sizeof(key); l++)
+            {
+                store_key[global][l] = key[l];
+            }
+            for (int l = 0; l < sizeof(value); l++)
+            {
+                store_value[global][l] = value[l];
+            }
+            global++;
+            pthread_mutex_unlock(&store_lock);
         }
         else
         {
-            close(client_sockfd);
-            break;
+            if (cmd[0] == 'g' && cmd[1] == 'e' && cmd[2] == 't')
+            {
+                for (int i = 4; i < sizeof(cmd); i++)
+                {
+                    if (cmd[i] == ')')
+                    {
+                        break;
+                    }
+                    key[i - 4] = cmd[i];
+                }
+                pthread_mutex_lock(&store_lock);
+                int m = 0;
+                for (m; m < vault_capacity; m++)
+                {
+                    if (strcmp(store_key[m], key) == 0)
+                    {
+                        break;
+                    }
+                }
+                strcpy(rtn, store_value[m]);
+                pthread_mutex_unlock(&store_lock);
+                write(client_sockfd, &rtn, sizeof(rtn));
+            }
+            else
+            {
+                close(client_sockfd);
+                break;
+            }
         }
     }
     pthread_exit(NULL);
