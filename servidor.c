@@ -72,7 +72,6 @@ void *user(void *arg)
     char value[value_size];
     while (1)
     {
-        fflush(stdout);
         read(client_sockfd, &cmd, sizeof(cmd));
         if (cmd[0] == 'p' && cmd[1] == 'u' && cmd[2] == 't')
         {

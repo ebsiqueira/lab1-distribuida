@@ -25,7 +25,7 @@ int main()
     result = connect(sockfd, (struct sockaddr *)&address, len);
     if (result == -1)
     {
-        perror("oops: client1");
+        perror("oops: client");
         exit(1);
     }
     while (1)
